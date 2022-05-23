@@ -161,4 +161,5 @@ def hello():
 
         new_row = {'Module':ModuleName, 'Details':ModuleText}
         ModuleDetails = ModuleDetails.append( new_row, ignore_index=True )
-    Return ModuleDetails
+
+Return ModuleDetails
