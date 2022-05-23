@@ -1,4 +1,4 @@
 Flask>=2.0,<=2.1.1
 pandas
 requests
-bs4
+BeautifulSoup4
