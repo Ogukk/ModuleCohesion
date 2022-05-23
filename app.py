@@ -165,4 +165,4 @@ for x in courses:
     new_row = {'Module':ModuleName, 'Details':ModuleText}
     ModuleDetails = ModuleDetails.append( new_row, ignore_index=True )
 
-Return ModuleDetails
+return render_template('simple.html',  tables=[ModuleDetails.to_html(classes='data')], titles=ModuleDetails.columns.values)
