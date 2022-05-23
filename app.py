@@ -133,9 +133,9 @@ def hello():
     ModuleDetails = pd.DataFrame( columns=['Module','Details'] )
 
     for x in courses:
-        print(x)
+        #print(x)
         URL = "https://www.keele.ac.uk/catalogue/2021-22/"+x+".htm"
-        print(URL)
+        #print(URL)
         Modulepage = requests.get(URL)
 
         ModuleSoup = BeautifulSoup(Modulepage.content, "html.parser")
