@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -62,7 +61,7 @@ for x in courses:
         
 
 
-# In[ ]:
+# In[2]:
 
 
 ModuleDetails.to_csv('ModuleDetails.csv')
@@ -71,7 +70,7 @@ ExcludedModules.to_csv('Error Report.csv')
 
 # The following section uses the Natural Language Tool Kit to apply Latent Dirichlet Allocation to ascertain the cohesion between the free text in the modules
 
-# In[ ]:
+# In[3]:
 
 
 import nltk as nltk
@@ -79,38 +78,38 @@ import nltk as nltk
 nltk.download('punkt')
 
 
-# In[ ]:
+# In[4]:
 
 
 from tqdm import tqdm_notebook
 tqdm_notebook().pandas()
 
 
-# In[ ]:
+# In[5]:
 
 
 ModuleDetails['sentences'] = ModuleDetails.Details.progress_map(nltk.sent_tokenize)
 
 
-# In[ ]:
+# In[6]:
 
 
 ModuleDetails['tokens_sentences'] = ModuleDetails['sentences'].progress_map(lambda sentences: [nltk.word_tokenize(sentence) for sentence in sentences])
 
 
-# In[ ]:
+# In[7]:
 
 
 nltk.download('averaged_perceptron_tagger')
 
 
-# In[ ]:
+# In[8]:
 
 
 ModuleDetails['POS_tokens'] = ModuleDetails['tokens_sentences'].progress_map(lambda tokens_sentences: [nltk.pos_tag(tokens) for tokens in tokens_sentences])
 
 
-# In[ ]:
+# In[9]:
 
 
 from nltk.corpus import wordnet
@@ -132,13 +131,13 @@ from nltk.stem.wordnet import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 
 
-# In[ ]:
+# In[10]:
 
 
 nltk.download('wordnet')
 
 
-# In[ ]:
+# In[11]:
 
 
 import nltk
@@ -155,13 +154,13 @@ ModuleDetails['tokens_sentences_lemmatized'] = ModuleDetails['POS_tokens'].progr
 )
 
 
-# In[ ]:
+# In[12]:
 
 
 nltk.download('stopwords')
 
 
-# In[ ]:
+# In[13]:
 
 
 from nltk.corpus import stopwords
@@ -171,13 +170,13 @@ stopwords_other = ['one', 'mr', 'keele', 'student', 'module', 'course', 'graduat
 my_stopwords = stopwords.words('english') + stopwords_verbs + stopwords_other
 
 
-# In[ ]:
+# In[14]:
 
 
 from itertools import chain # to flatten list of sentences of tokens into list of tokens
 
 
-# In[ ]:
+# In[15]:
 
 
 ModuleDetails['tokens'] = ModuleDetails['tokens_sentences_lemmatized'].map(lambda sentences: list(chain.from_iterable(sentences)))
@@ -185,13 +184,13 @@ ModuleDetails['tokens'] = ModuleDetails['tokens'].map(lambda tokens: [token.lowe
                                                     and token.lower() not in my_stopwords and len(token)>1])
 
 
-# In[ ]:
+# In[16]:
 
 
 from gensim.models import Phrases
 
 
-# In[ ]:
+# In[17]:
 
 
 tokens = ModuleDetails['tokens'].tolist()
@@ -200,13 +199,13 @@ trigram_model = Phrases(bigram_model[tokens], min_count=1)
 tokens = list(trigram_model[bigram_model[tokens]])
 
 
-# In[ ]:
+# In[18]:
 
 
 from gensim import corpora
 
 
-# In[ ]:
+# In[19]:
 
 
 dictionary_LDA = corpora.Dictionary(tokens)
@@ -214,14 +213,14 @@ dictionary_LDA.filter_extremes(no_below=3)
 corpus = [dictionary_LDA.doc2bow(tok) for tok in tokens]
 
 
-# In[ ]:
+# In[20]:
 
 
 from gensim import models
 import numpy as np
 
 
-# In[ ]:
+# In[21]:
 
 
 np.random.seed(123456)
@@ -229,7 +228,7 @@ num_topics = 10
 get_ipython().run_line_magic('time', 'lda_model = models.LdaModel(corpus, num_topics=num_topics,                                   id2word=dictionary_LDA,                                   passes=4, alpha=[0.01]*num_topics,                                   eta=[0.01]*len(dictionary_LDA.keys()))')
 
 
-# In[ ]:
+# In[22]:
 
 
 x=lda_model.show_topics(num_topics=num_topics, num_words=20,formatted=False)
@@ -244,19 +243,19 @@ Topic_WordsDf = pd.DataFrame(topic_words)
 Topic_WordsDf = Topic_WordsDf.rename(columns={0: 'Topic', 1: 'Words'})
 
 
-# In[ ]:
+# In[23]:
 
 
 lda_model[corpus[0]]
 
 
-# In[ ]:
+# In[24]:
 
 
 topics = [lda_model[corpus[i]] for i in range(len(ModuleDetails))]
 
 
-# In[ ]:
+# In[25]:
 
 
 def topics_document_to_dataframe(topics_document, num_topics):
@@ -266,13 +265,13 @@ def topics_document_to_dataframe(topics_document, num_topics):
     return res
 
 
-# In[ ]:
+# In[26]:
 
 
 document_topic = pd.concat([topics_document_to_dataframe(topics_document, num_topics=num_topics) for topics_document in topics])   .reset_index(drop=True).fillna(0)
 
 
-# In[ ]:
+# In[27]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -280,14 +279,14 @@ import seaborn as sns; sns.set(rc={'figure.figsize':(10,20)})
 sns.heatmap(document_topic.loc[document_topic.idxmax(axis=1).sort_values().index])
 
 
-# In[ ]:
+# In[28]:
 
 
 ModuleDetails['ModuleID'] = ModuleDetails.index
 ModuleDetails.drop(ModuleDetails.iloc[:, 2:7], inplace = True, axis = 1)
 
 
-# In[ ]:
+# In[29]:
 
 
 Coherance = pd.DataFrame(columns=['LDA','ModuleID','Topic','Module','ModuleTitle','tokens','Words'])
@@ -307,7 +306,7 @@ for TopicID in range(0, num_topics):
     TopicID += 1
 
 
-# In[ ]:
+# In[30]:
 
 
 Coherance.to_csv('CoherantModules.csv')
@@ -316,5 +315,11 @@ Coherance.to_csv('CoherantModules.csv')
 # In[ ]:
 
 
+import sqlite3
 
+conn = sqlite3.connect("Coherance.db")
+cur = conn.cursor()
+
+Coherance.to_sql('CoherantModules', conn, if_exists='replace', index=False)
+ModuleDetails.to_sql('ModuleDetails', conn, if_exists='replace', index=False)
 
